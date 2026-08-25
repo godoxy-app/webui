@@ -123,9 +123,9 @@ export interface Container {
   container_name: string;
   docker_cfg: DockerProviderConfig;
   errors: string;
+  exclude: "none" | "proxy" | "healthcheck" | "all";
   idlewatcher_config: IdlewatcherConfig;
   image: ContainerImage;
-  is_excluded: boolean;
   is_explicit: boolean;
   is_host_network_mode: boolean;
   labels: Record<string, string>;

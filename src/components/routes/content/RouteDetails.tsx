@@ -332,10 +332,7 @@ export default function RouteDetails() {
                   label="Private Hostname"
                   value={routeDetails.container.private_hostname}
                 />
-                <DataListRow
-                  label="Container Excluded"
-                  value={routeDetails.container.is_excluded ? 'Yes' : 'No'}
-                />
+                <DataListRow label="Container Exclusion" value={routeDetails.container.exclude} />
               </DataList>
             </CardContent>
           </Card>

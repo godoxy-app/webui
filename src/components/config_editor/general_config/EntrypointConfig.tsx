@@ -4,8 +4,10 @@ import { StoreListInput } from '@/components/form/StoreListInput'
 import { StoreMapInput } from '@/components/form/StoreMapInput'
 import { StoreSelectField } from '@/components/store/Select'
 import { StoreSwitchField } from '@/components/store/Switch'
+import { StoreCodeMirrorField } from '@/components/ui/store/CodeMirror'
 import { Card, CardContent } from '@/components/ui/card'
 import { ConfigSchema, MiddlewareComposeSchema } from '@/types/godoxy'
+import { blockRules } from '@/lib/codemirror/rules-block'
 import type { MiddlewareFileRef } from '@/types/godoxy/middlewares/middlewares'
 import { middlewareUseToSnakeCase } from '../middleware_compose/utils'
 import { configStore } from '../store'
@@ -13,6 +15,11 @@ import { Conditional } from 'juststore'
 
 const config = configStore.configObject
 const proxyProtocolConfig = config.entrypoint.proxy_protocol.ensureObject()
+const notFoundRules = config.entrypoint.rules.not_found.derived({
+  from: value => value ?? '',
+  to: value => (value ? value : undefined), // remove an empty rules block from the saved config
+})
+
 const legacySupportProxyProtocol = config.entrypoint.support_proxy_protocol.derived({
   from: v => v,
   to: v => (v ? v : undefined), // deprecated field: remove completely when it's toggled off
@@ -24,6 +31,7 @@ export default function EntrypointConfigContent() {
       <EntrypointNetworkConfig />
       <EntrypointAccessLogConfig />
       <EntrypointMiddlewaresConfig />
+      <EntrypointNotFoundRulesConfig />
     </div>
   )
 }
@@ -101,6 +109,25 @@ function EntrypointAccessLogConfig() {
       schema={ConfigSchema.definitions.RequestLogConfig}
       state={config.entrypoint.access_log.ensureObject()}
     />
+  )
+}
+
+function EntrypointNotFoundRulesConfig() {
+  return (
+    <Card>
+      <CardContent>
+        <StoreCodeMirrorField
+          state={notFoundRules}
+          title="Not Found Rules"
+          description="Block-syntax rules evaluated only when no host route or short link matches. If no rule handles the request, GoDoxy serves its normal 404 response."
+          extensions={[blockRules()]}
+          basicSetup
+          readOnly={false}
+          language="block"
+          className="min-h-[300px] max-h-[50vh] rounded-md border"
+        />
+      </CardContent>
+    </Card>
   )
 }
 

@@ -1,5 +1,4 @@
 import type { EntrypointMiddlewares } from '../middlewares/middleware_compose'
-import type { RouteRule } from '../providers/routes'
 import type { RequestLogConfig } from './access_log'
 
 export type EntrypointConfig = {
@@ -15,8 +14,11 @@ export type EntrypointConfig = {
   access_log?: RequestLogConfig
   /** Entrypoint rules */
   rules?: {
-    /** Not found rules */
-    not_found?: RouteRule[]
+    /**
+     * Block-syntax rules for ordinary requests with no matching host route or short link.
+     * Unhandled requests fall back to the normal 404 response.
+     */
+    not_found?: string
   }
 }
 

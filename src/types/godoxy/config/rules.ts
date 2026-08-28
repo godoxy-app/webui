@@ -187,6 +187,7 @@ type RuleOnResponseHeader = OptionalPattern<`resp_header ${HTTPHeader}`>
  *
  * @examples [
  *   "require_auth",
+ *   "middleware RealIP { header: CF-Connecting-IP }",
  *   "rewrite / /index.html",
  *   "serve /static",
  *   "serve_file /index.html",
@@ -230,6 +231,7 @@ type RuleDoCommandName =
   | 'pass'
   | 'bypass'
   | 'require_auth'
+  | 'middleware'
   | 'rewrite'
   | 'serve'
   | 'serve_file'
@@ -246,14 +248,17 @@ type RuleDoCommandName =
   | 'notify'
 
 /**
- * Named option block for any `do` command.
+ * Generic named-property block for `do` commands.
  *
- * Each line names one scalar option, in the same positional order the command
- * expects. Values use normal rule string parsing, so quotes and backticks work.
+ * Each command owns any header arguments and the schema of its block properties.
  *
- * @examples ["notify {\n  level: info\n  provider: ntfy\n  title: Request\n  body: $req_method $status_code\n}"]
+ * @examples ["notify {\n  level: info\n  provider: ntfy\n  title: Request\n  body: $req_method $status_code\n}", "middleware RealIP {\n  header: X-Forwarded-For\n}"]
  */
-type RuleDoOptionBlock = `${RuleDoCommandName} {\n${string}\n}` | `${RuleDoCommandName} {${string}}`
+type RuleDoOptionBlock =
+  | `${RuleDoCommandName} {\n${string}\n}`
+  | `${RuleDoCommandName} {${string}}`
+  | `${RuleDoCommandName} ${string} {\n${string}\n}`
+  | `${RuleDoCommandName} ${string} {${string}}`
 
 /**
  * require_auth

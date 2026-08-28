@@ -117,13 +117,13 @@ function commandHasOption(command: string, field: string) {
 type OptionBlockContext = {
   command: string
   from: number
+  hasHeaderArguments: boolean
 }
 
 function commandFromBlockHeader(header: string) {
-  const command = header.trim()
-  if (!common.actionKeywords.has(command)) return null
-  if (!common.commandOptionFields.has(command)) return null
-  return command
+  const [command, ...headerArguments] = header.trim().split(/\s+/)
+  if (!command || !common.actionKeywords.has(command)) return null
+  return { command, hasHeaderArguments: headerArguments.length > 0 }
 }
 
 function findOptionBlockContext(doc: string, pos: number): OptionBlockContext | null {
@@ -212,8 +212,12 @@ function findOptionBlockContext(doc: string, pos: number): OptionBlockContext | 
     }
 
     if (ch === '{') {
-      const command = commandFromBlockHeader(doc.slice(lineStart, i))
-      stack.push({ command: command ?? '', from: i + 1 })
+      const header = commandFromBlockHeader(doc.slice(lineStart, i))
+      stack.push({
+        command: header?.command ?? '',
+        from: i + 1,
+        hasHeaderArguments: header?.hasHeaderArguments ?? false,
+      })
       continue
     }
 
@@ -345,7 +349,9 @@ function completionForOptionBlock(context: Parameters<CompletionSource>[0]) {
     if (!word && !context.explicit) return null
     return createCompletionResult({
       from,
-      options: getCommandOptionCompletions(optionBlock.command, usedFields),
+      options: optionBlock.hasHeaderArguments
+        ? []
+        : getCommandOptionCompletions(optionBlock.command, usedFields),
     })
   }
 
@@ -511,9 +517,7 @@ function tokenOptionBlock(stream: StringStream, state: BlockRulesState) {
     const word = stream.current()
     if (stream.match(/^\s*:/, false)) {
       state.optionLineKey = word
-      const command = currentOptionBlockCommand(state)
-      if (command && commandHasOption(command, word)) return 'property'
-      return null
+      return 'property'
     }
 
     if (state.optionLineKey === 'level' && common.logLevels.includes(word)) return 'typeName'
@@ -636,7 +640,6 @@ export const blockRulesLanguage = StreamLanguage.define({
     if (quote === '"' || quote === "'") {
       stream.next()
       state.inString = quote
-      state.pendingOptionBlockCommand = null
       return 'string'
     }
 
@@ -646,21 +649,18 @@ export const blockRulesLanguage = StreamLanguage.define({
 
     if (state.expectVarCallArgs && stream.match('(')) {
       state.expectVarCallArgs = false
-      state.pendingOptionBlockCommand = null
       state.varCallArgsDepth = 1
       return 'punctuation'
     }
 
     if (state.expectPatternArgs && stream.match('(')) {
       state.expectPatternArgs = false
-      state.pendingOptionBlockCommand = null
       state.patternArgsDepth = 1
       return 'punctuation'
     }
 
     if (state.expectLogLevel && stream.match(/[A-Za-z_][A-Za-z0-9_-]*/)) {
       state.expectLogLevel = false
-      state.pendingOptionBlockCommand = null
       return 'typeName'
     }
 
@@ -677,22 +677,18 @@ export const blockRulesLanguage = StreamLanguage.define({
       return 'brace'
     }
     if (stream.match(/[()]/)) {
-      state.pendingOptionBlockCommand = null
       return 'punctuation'
     }
     if (stream.match(/[&|]/)) {
-      state.pendingOptionBlockCommand = null
       return 'operator'
     }
 
     const variableToken = tokenizeVariableReference(stream, state)
     if (variableToken) {
-      state.pendingOptionBlockCommand = null
       return variableToken
     }
 
     if (stream.match(/\d+(?:\.\d+)?(?:-\d+)?(?:xx)?\b/)) {
-      state.pendingOptionBlockCommand = null
       return 'number'
     }
 
@@ -702,6 +698,7 @@ export const blockRulesLanguage = StreamLanguage.define({
         state.expectMutationField = false
         if (common.mutationFieldKeywords.has(word)) return 'attributeName'
       }
+      if (state.pendingOptionBlockCommand) return null
       if (
         common.controlKeywords.has(word) ||
         common.conditionKeywords.has(word) ||
@@ -721,13 +718,11 @@ export const blockRulesLanguage = StreamLanguage.define({
         state.pendingOptionBlockCommand = null
         return 'builtin'
       }
-      state.pendingOptionBlockCommand = null
       if (common.httpMethods.includes(word)) return 'atom'
       if (common.protocolAtoms.includes(word)) return 'atom'
       return null
     }
 
-    state.pendingOptionBlockCommand = null
     stream.next()
     return null
   },

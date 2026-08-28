@@ -85,6 +85,13 @@ describe('blockRulesCompletionSource', () => {
     expect(result?.options.find(option => option.label === 'from')?.apply).toBe('from: ')
   })
 
+  test('recognizes command option blocks with header arguments', async () => {
+    const result = await completionAt('default {\n  middleware CloudflareRealIP {\n    ')
+
+    expect(result).not.toBeNull()
+    expect(result?.options).toEqual([])
+  })
+
   test('omits option names already set in named option blocks', async () => {
     const result = await completionAt('path /api {\n  notify {\n    level: info\n    ')
     expect(result).not.toBeNull()
@@ -160,6 +167,19 @@ describe('blockRulesLanguage variable highlighting', () => {
     expect(findTokenNames(doc, '$status_code')).toContain('variableName')
   })
 
+  test('highlights property keys in command blocks with header arguments', () => {
+    const doc = `default {
+  middleware RealIP {
+    header: X-Forwarded-For
+    from:
+      - 127.0.0.1/32
+  }
+}`
+
+    expect(findTokenNames(doc, 'header')).toContain('propertyName')
+    expect(findTokenNames(doc, 'from')).toContain('propertyName')
+  })
+
   test('highlights inline option block keys', () => {
     const doc = 'path /api { rewrite { from: /api to: /backend } }'
 
@@ -167,8 +187,8 @@ describe('blockRulesLanguage variable highlighting', () => {
     expect(findTokenNames(doc, 'to')).toContain('propertyName')
   })
 
-  test('does not highlight options from another command as valid keys', () => {
-    expect(findTokenNames('path /api { rewrite { provider: ntfy } }', 'provider')).not.toContain(
+  test('highlights syntactic property keys independently of command schema', () => {
+    expect(findTokenNames('path /api { rewrite { provider: ntfy } }', 'provider')).toContain(
       'propertyName'
     )
     expect(findTokenNames('path /api { notify { provider: ntfy } }', 'provider')).toContain(

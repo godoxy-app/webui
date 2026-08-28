@@ -48,6 +48,7 @@ const actionKeywords = new Set([
   'pass',
   'bypass',
   'require_auth',
+  'middleware',
   'rewrite',
   'serve',
   'serve_file',

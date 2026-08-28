@@ -515,6 +515,25 @@
           ]
         },
         {
+          "id": "command-middleware",
+          "name": "middleware",
+          "kind": "command",
+          "summary": "Run a request middleware and continue if it permits the request",
+          "description": [
+            "Run a request middleware and continue if it permits the request"
+          ],
+          "syntax": "middleware <name>",
+          "args": [
+            {
+              "name": "name",
+              "description": "the built-in or composed middleware name"
+            }
+          ],
+          "tags": [
+            "command"
+          ]
+        },
+        {
           "id": "command-notify",
           "name": "notify",
           "kind": "command",

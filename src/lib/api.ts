@@ -647,6 +647,12 @@ export interface IdlewatcherConfig {
    */
   idle_timeout: TimeDuration;
   no_loading_page: boolean;
+  /**
+   * Notify opts this route into sleep/wake notifications. It lives on the
+   * base so it survives the config copy done on reload in
+   * idlewatcher.NewWatcher.
+   */
+  notify: IdlewatcherNotifyConfig;
   proxmox: IdlewatcherProxmoxNodeConfig;
   /** Optional path that must be hit to start container */
   start_endpoint: string;
@@ -660,6 +666,16 @@ export interface IdlewatcherDockerConfig {
   container_id: string;
   container_name: string;
   docker_cfg: DockerProviderConfig;
+}
+
+export interface IdlewatcherNotifyConfig {
+  /**
+   * Opt in or out explicitly. Unset inherits `defaults.idlewatcher.notify`,
+   * then falls back to len(To) > 0.
+   */
+  enabled: boolean;
+  /** `providers.notification` names to send to. Empty means all of them. */
+  to: string[];
 }
 
 export interface IdlewatcherProxmoxNodeConfig {

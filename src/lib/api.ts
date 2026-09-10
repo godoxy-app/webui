@@ -670,30 +670,13 @@ export interface IdlewatcherDockerConfig {
 
 export interface IdlewatcherNotifyConfig {
   /**
-   * Enabled is nil by default, meaning: inherit `defaults.idlewatcher.notify`,
-   * then fall back to len(To) > 0. Set it explicitly to override the global
-   * default in either direction.
+   * Opt in or out explicitly. Unset inherits `defaults.idlewatcher.notify`,
+   * then falls back to len(To) > 0.
    */
   enabled: boolean;
-  /**
-   * Events lists the transitions to notify on. Empty means the default set,
-   * see NotifyEventsDefault. "all" selects every event.
-   */
-  events: IdlewatcherNotifyEvent[];
-  /**
-   * To lists the `providers.notification` names to send to. Empty means every
-   * configured provider.
-   */
+  /** `providers.notification` names to send to. Empty means all of them. */
   to: string[];
 }
-
-export type IdlewatcherNotifyEvent =
-  | "sleep"
-  | "wake"
-  | "ready"
-  | "error"
-  | "sleep_failed"
-  | "all";
 
 export interface IdlewatcherProxmoxNodeConfig {
   node: string;

@@ -18,16 +18,6 @@ export const STOP_SIGNALS = [
 ] as const
 export type Signal = (typeof STOP_SIGNALS)[number]
 
-export const IDLEWATCHER_NOTIFY_EVENTS = [
-  'sleep',
-  'wake',
-  'ready',
-  'error',
-  'sleep_failed',
-  'all',
-] as const
-export type IdleWatcherNotifyEvent = (typeof IDLEWATCHER_NOTIFY_EVENTS)[number]
-
 export type IdleWatcherNotifyConfig = {
   /** Send sleep/wake notifications for this route
    *
@@ -41,11 +31,6 @@ export type IdleWatcherNotifyConfig = {
    * Omit to send to every configured provider.
    */
   to?: string[]
-  /** Transitions to notify on
-   *
-   * @default ["sleep","wake"]
-   */
-  events?: IdleWatcherNotifyEvent[]
 }
 
 export type IdleWatcherConfig = {
@@ -83,9 +68,4 @@ export type IdleWatcherConfig = {
    * Docker label: `proxy.idle_notify_to`
    */
   idle_notify_to?: string
-  /** Transitions to notify on, comma separated
-   *
-   * Docker label: `proxy.idle_notify_events`
-   */
-  idle_notify_events?: string
 }

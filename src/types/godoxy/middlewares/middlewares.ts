@@ -145,8 +145,8 @@ export type HideXForwarded = {
 export type CIDRWhitelist = {
   /** Middleware */
   use: LooseUse<'cidr_whitelist'>
-  /* Allowed CIDRs/IPs */
-  allow: CIDR[]
+  /** Allowed CIDRs/IPs. An omitted or empty list denies requests unless bypassed. */
+  allow?: CIDR[]
   /** HTTP status code
    *
    * @default 403
